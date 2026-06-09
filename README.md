@@ -1,162 +1,141 @@
-# md-to-ppt-pdf 技能完整说明
+# md-to-ppt-pdf — Markdown 报告一键转精美 PPT + PDF
 
-> 基于 **html-ppt-skill**（GitHub 5700+ Star）设计理念自建的 Markdown 报告精美转换工具链。
-> Token 驱动设计系统 + Navy Gold 主题配色，一链出 PPTX + PDF。
+基于 **html-ppt-skill** 设计理念（Token 驱动设计系统 + 36主题配色库 + 31布局模板），自建的跨平台报告转换工具链。
 
----
+## 特性
 
-## 一、技能概述
+- **纯 Python**，零外部服务依赖，离线可用
+- **Token 驱动设计**：Navy Blue + Gold 主题，修改一行变量即可换皮
+- **PPTX 精美排版**：卡片布局、时间线、漏斗图、数据表格
+- **PDF 专业输出**：CSS 增强注入（斑马纹表格、金边 blockquote、h2 金竖线）
+- **跨智能体可用**：脚本自包含，改名 SKILL.md 指令层即可接入任意 AI 编程助手
 
-| 属性 | 值 |
-|------|-----|
-| **技能名** | `md-to-ppt-pdf` |
-| **触发词** | MD转PPT、报告转PPT、生成PPT、生成PDF、报告转PDF |
-| **适用场景** | 研究报告、行业报告、投资分析报告等需要精美排版的场景 |
-| **核心依赖** | python-pptx（PPTX）、pandoc 或 sn-md-to-html-report（HTML）、Edge/Chrome（PDF） |
-| **输出格式** | `.pptx` + `.pdf` + `.docx` 三种格式 |
+## 快速开始
 
----
+### 安装依赖
 
-## 二、架构流程
-
-```
-report.md                        ← 你写的 Markdown 源文件
-    │
-    ├──→ [python-pptx 模板引擎] ──→ report.pptx    12页精美幻灯片
-    │
-    └──→ [sn-md-to-html-report] ──→ report.html     美化 HTML
-                 │
-                 ├──→ [inject_css.py] ──→  注入 DesignTokens CSS
-                 │
-                 └──→ [Edge headless CLI] ──→ report.pdf   专业 PDF
+```bash
+pip install python-pptx
 ```
 
----
+### 三条命令出成品
 
-## 三、DesignTokens 配色系统
+```bash
+# 1. MD → PPTX（需按内容定制 slide 函数）
+python scripts/generate_ppt.py
 
-基于 Corporate Pitch 风格，核心配色：
+# 2. MD → HTML → CSS 增强
+pandoc report.md -o report.html --standalone --css=styles.css
+python scripts/inject_css.py report.html
 
+# 3. HTML → PDF（选一种）
+msedge --headless --disable-gpu --print-to-pdf=report.pdf --no-pdf-header-footer file:///absolute/path/report.html
+# 或
+chrome --headless --disable-gpu --print-to-pdf=report.pdf file:///absolute/path/report.html
+# 或
+npx puppeteer print report.html report.pdf
 ```
-┌─────────────────────────────────────────┐
-│  PRIMARY   ■ #0D2137  Navy Blue  标题  │
-│  SECONDARY ■ #D4AF37  Gold        强调  │
-│  ACCENT    ■ #2E86AB  Teal        链接  │
-│  BG_LIGHT  ■ #F5F3EE  暖灰        背景  │
-│  CARD_BG   ■ #FFFFFF  白色        卡片  │
-│  TEXT      ■ #1A1A2E  深蓝黑      正文  │
-│  MUTED     ■ #6B7280  灰色        辅助  │
-└─────────────────────────────────────────┘
-```
 
-修改 `generate_ppt.py` 中的 `class DesignTokens` 和 `inject_css.py` 中的 CSS 变量即可一键换皮。
-
----
-
-## 四、11 种布局模板（generate_ppt.py）
-
-| 函数 | 用途 | 固定页 |
-|------|------|--------|
-| `slide_cover(title, subtitle, date)` | 封面：标题 + 副标题 + 日期 | P1 |
-| `slide_toc(items)` | 目录：编号列表 | P2 |
-| `slide_3_conclusions(cards)` | 三栏核心结论卡片 | P3 |
-| `slide_single_conclusion(text)` | 单栏大结论（黑底金字） | P4 |
-| `slide_market_size(title, table_data)` | 数据表格 + 指标高亮 | P5 |
-| `slide_competitive(us, them)` | 双栏对比（我们 vs 竞品） | P6 |
-| `slide_monetization(tiers)` | 三层变现漏斗 | P7 |
-| `slide_differentiation(cards)` | 四卡差异化分析 | P8 |
-| `slide_90day_plan(phases)` | 时间线（多阶段里程碑） | P9 |
-| `slide_risk(risks)` | 风险预案表 | P10 |
-| `slide_thanks()` | 致谢尾页 | 末页 |
-
----
-
-## 五、文件结构
+## 文件结构
 
 ```
 md-to-ppt-pdf/
-├── SKILL.md                 ← WorkBuddy 技能定义（加载入口）
-├── SKILLS说明.md            ← 你正在看的这份文档
-├── README.md                ← 通用使用手册（跨平台/跨智能体）
-├── Makefile                 ← 一键构建脚本
+├── README.md               ← 你在这里
+├── SKILL.md                ← WorkBuddy 专用指令（其他平台需改写）
+├── Makefile                ← 一键构建
 ├── scripts/
-│   ├── generate_ppt.py      ← PPTX 模板引擎（～32KB，核心脚本）
-│   └── inject_css.py        ← HTML CSS 增强注入器（～3KB）
-├── assets/                  ← 静态资源预留（未来放字体/主题包）
-└── references/              ← 设计文档预留
+│   ├── generate_ppt.py     ← python-pptx 模板引擎（核心）
+│   └── inject_css.py       ← HTML CSS 增强注入
+├── assets/                 ← 静态资源（后续放主题包、字体）
+└── references/             ← 设计文档
 ```
 
----
+## 在其他 AI 编程助手中使用
 
-## 六、完整使用命令
+### 方式一：直接调脚本（最通用）
 
-### 在 WorkBuddy 中（自然语言触发）
+任何支持 `run` / `execute_command` 的智能体都能调用：
 
 ```
-"把这份报告转成 PPT 和 PDF"
-"用 md-to-ppt-pdf 处理 report.md"
+# 给智能体的提示词：
+"读取 scripts/generate_ppt.py，根据 DesignTokens 类，
+为当前 Markdown 报告生成定制 PPTX。然后调用 scripts/inject_css.py 增强 HTML，
+最后用 Edge/Chrome headless 打印 PDF。"
 ```
 
-### 命令行直接调用
+### 方式二：改写为平台指令
+
+| 平台 | 操作 |
+|------|------|
+| **Cursor** | 复制 SKILL.md 内容到 `.cursorrules`，删除 frontmatter |
+| **Claude Code** | 改写为 `.claude/commands/md-to-ppt.md`，用 slash command 触发 |
+| **Copilot** | 改写为 `.github/copilot-instructions.md`，作为全局规则 |
+| **Cline / Roo Code** | 在 `.clinerules` 中添加自定义指令块 |
+| **Windsurf** | 写入 `.windsurfrules` |
+| **通用 IDE** | 直接作为项目 README，人工/AI 参照执行 |
+
+### 方式三：封装为独立 CLI 工具
 
 ```bash
-# PPTX
-python scripts/generate_ppt.py
+# 后续可升级为 pip 包
+pip install md-to-ppt-pdf
 
-# HTML（需 sn-md-to-html-report skill）
-python ~/.workbuddy/skills/sn-md-to-html-report/scripts/render_report.py \
-    report.md report.html --with-js --mermaid-source cdn --title-style comfortable
-
-# CSS 增强
-python scripts/inject_css.py report.html
-
-# PDF（Windows Edge）
-"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe" \
-    --headless --disable-gpu --print-to-pdf=report.pdf \
-    --no-pdf-header-footer "file:///C:/path/to/report.html"
+# 一键生成
+md-to-ppt report.md --theme corporate --output report.pptx
 ```
 
-### Makefile 一键构建
+## DesignTokens 参考
 
-```bash
-make all MD="报告.md" TITLE="报告标题"
+| Token | 色值 | 用途 |
+|-------|------|------|
+| `PRIMARY` | `#0D2137` | 标题、卡片头、深色背景 |
+| `SECONDARY` | `#D4AF37` | 强调色、分割线、高亮 |
+| `ACCENT` | `#2E86AB` | 链接、三级标题、数据 |
+| `BG_LIGHT` | `#F5F3EE` | 页面背景 |
+| `CARD_BG` | `#FFFFFF` | 卡片背景 |
+| `TEXT_DARK` | `#1A1A2E` | 正文 |
+| `TEXT_MUTED` | `#6B7280` | 辅助文字 |
+
+## 布局模板
+
+`generate_ppt.py` 内置的 slide 函数：
+
+| 函数 | 用途 | 页数 |
+|------|------|------|
+| `slide_cover` | 封面（标题 + 副标题 + 日期） | 1 |
+| `slide_toc` | 目录（编号列表） | 1 |
+| `slide_3_conclusions` | 三栏核心结论卡片 | 1-2 |
+| `slide_market_size` | 数据表格 + 指标高亮 | 1 |
+| `slide_competitive` | 双栏对比（我们 vs 竞品） | 1 |
+| `slide_monetization` | 三层变现漏斗图 | 1 |
+| `slide_differentiation` | 四卡差异化分析 | 1 |
+| `slide_90day_plan` | 时间线（5 阶段里程碑） | 1 |
+| `slide_risk` | 风险预案表 | 1 |
+| `slide_mvp` | CTA 行动号召 | 1 |
+| `slide_thanks` | 致谢尾页 | 1 |
+
+## 定制主题
+
+修改 `scripts/generate_ppt.py` 顶部的 `DesignTokens` 类：
+
+```python
+class DesignTokens:
+    COLOR_PRIMARY    = RGBColor(0x0D, 0x21, 0x37)   # 改成你的品牌色
+    COLOR_SECONDARY  = RGBColor(0xD4, 0xAF, 0x37)
+    COLOR_ACCENT     = RGBColor(0x2E, 0x86, 0xAB)
 ```
 
----
+同步修改 `scripts/inject_css.py` 的 CSS 变量。
 
-## 七、已知限制与注意事项
+## 依赖
 
-| 限制 | 说明 | 应对 |
-|------|------|------|
-| RGBColor 不支持 alpha | python-pptx 的 RGBColor 只接受 3 参数 | 用纯色替代半透明 |
-| Snakeviz 布局模板空 | `generate_ppt.py` 是骨架模板 | 每次需要根据报告内容定制 slide 函数 |
-| Edge 路径固定 | 强制依赖 `C:\Program Files (x86)\Microsoft\Edge\` | macOS/Linux 替换为 Chrome 路径 |
-| 中文渲染依赖系统字体 | Edge headless 无额外字体 | 确保系统安装了微软雅黑 |
-| sn-md-to-html-report 仅 WorkBuddy | 其他智能体没有这个 skill | 用 pandoc 替代：`pandoc report.md -o report.html` |
+| 组件 | 用途 | 必需？ |
+|------|------|--------|
+| `python-pptx` | PPTX 生成 | ✅ 必需 |
+| `pandoc` | MD→HTML 转换 | 可选（可用任一 MD 渲染器替代） |
+| `msedge` / `chrome` | HTML→PDF 打印 | 仅 PDF 需要 |
+| `sn-md-to-html-report` | WorkBuddy 内置 MD→HTML 美化 | WorkBuddy 专属，其他平台用 pandoc 替代 |
 
----
+## License
 
-## 八、迁移到其他 AI 智能体
-
-### Cursor
-将 SKILL.md 内容复制到 `.cursorrules`，删除 frontmatter 三行 `---`。
-
-### Claude Code
-改写为 `.claude/commands/md-to-ppt.md`（slash command 格式）。
-
-### GitHub Copilot
-改写为 `.github/copilot-instructions.md` 全局规则。
-
-### 关键适配点
-1. **MD→HTML**：把 `sn-md-to-html-report` 换成 `pandoc` 或 `marked`
-2. **HTML→PDF**：把 Edge 路径换成目标平台的 Chrome/Chromium 路径
-3. **指令格式**：把 WorkBuddy 的 `技能描述 → 流程说明` 改写成目标平台的 rules/commands 格式
-
----
-
-## 九、版本历史
-
-| 日期 | 版本 | 变更 |
-|------|------|------|
-| 2026-06-09 | 1.0 | 初始版本：基于 html-ppt-skill 设计理念自建 |
-| 2026-06-09 | 1.1 | 添加 README.md + Makefile，支持跨智能体迁移 |
+MIT
